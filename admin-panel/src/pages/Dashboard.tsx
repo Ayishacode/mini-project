@@ -1,8 +1,27 @@
 import { useQuery } from '@tanstack/react-query'
 import { useNavigate } from 'react-router-dom'
 import { supabase } from '../lib/supabase'
-import { Grievance } from '../types'
+import { Grievance, PARENT_CATEGORIES } from '../types'
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts'
+
+// Map DB category values to parent category names
+const CATEGORY_MAP: Record<string, string> = {
+  'Academic': 'Academics',
+  'Financial': 'Office and Administration',
+  'Administration': 'Office and Administration',
+  'Discipline / Harassment': 'Behavioral',
+  'Infrastructure': 'Facilities',
+  'Other': 'Campus',
+}
+
+function getParentCategory(g: Grievance): string {
+  // user_department stores full "Parent - Sub" value
+  if (g.user_department) {
+    const parts = g.user_department.split(' - ')
+    if (parts.length >= 1) return parts[0]
+  }
+  return CATEGORY_MAP[g.category] || g.category
+}
 
 export default function Dashboard() {
   const navigate = useNavigate()
@@ -27,15 +46,11 @@ export default function Dashboard() {
     resolved: grievances.filter(g => g.status === 'Resolved' || g.status === 'Closed').length,
   }
 
-  const categories = [
-    'Academic', 'Examination', 'Infrastructure', 'Hostel',
-    'Library', 'Administration', 'IT / Network', 
-    'Discipline / Harassment', 'Other'
-  ]
+  const categories = PARENT_CATEGORIES
 
   const getCategoryCount = (category: string) => {
     return grievances.filter(g => 
-      g.category === category && 
+      getParentCategory(g) === category && 
       (g.status === 'Submitted' || g.status === 'Acknowledged')
     ).length
   }
@@ -43,7 +58,7 @@ export default function Dashboard() {
   // Category Distribution Data
   const categoryData = categories.map(category => ({
     name: category,
-    count: grievances.filter(g => g.category === category).length
+    count: grievances.filter(g => getParentCategory(g) === category).length
   })).filter(item => item.count > 0)
 
   // Status Breakdown Data
@@ -246,7 +261,7 @@ export default function Dashboard() {
                     {grievance.grievance_id}
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                    {grievance.category}
+                    {getParentCategory(grievance)}
                   </td>
                   <td className="px-6 py-4 text-sm text-gray-900">
                     <div className="max-w-xs truncate">

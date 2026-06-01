@@ -10,14 +10,27 @@ export type GrievanceStatus =
 
 export type GrievanceCategory =
   | 'Academic'
-  | 'Examination'
   | 'Infrastructure'
-  | 'Hostel'
-  | 'Library'
   | 'Administration'
-  | 'IT / Network'
   | 'Discipline / Harassment'
+  | 'Financial'
   | 'Other'
+
+export const PARENT_CATEGORIES = [
+  'Academics',
+  'Office and Administration',
+  'Behavioral',
+  'Facilities',
+  'Campus'
+]
+
+export const ALL_SUBCATEGORIES: Record<string, string[]> = {
+  'Academics': ['Teaching', 'Examination', 'Internal Assessment'],
+  'Office and Administration': ['Fee', 'Scholarships', 'Certificates'],
+  'Behavioral': ['Bullying / Ragging', 'Threat / Intimidation', 'Defamation', 'Substance Abuse', 'Sexual / Verbal Harassment'],
+  'Facilities': ['Library', 'Canteen', 'Laboratory', 'Computer Lab', 'Counselling Centre', 'Hostel', 'Washroom', 'Sports Amenities'],
+  'Campus': ['Cleanliness', 'Building', 'Electrical / Plumbing']
+}
 
 export interface Grievance {
   id: string

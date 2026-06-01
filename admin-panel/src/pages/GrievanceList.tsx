@@ -5,6 +5,23 @@ import { Grievance } from '../types'
 import { getStatusColor, formatDate } from '../lib/utils'
 import { useEffect, useState } from 'react'
 
+const CATEGORY_MAP: Record<string, string> = {
+  'Academic': 'Academics',
+  'Financial': 'Office and Administration',
+  'Administration': 'Office and Administration',
+  'Discipline / Harassment': 'Behavioral',
+  'Infrastructure': 'Facilities',
+  'Other': 'Campus',
+}
+
+function getParentCategory(g: Grievance): string {
+  if (g.user_department) {
+    const parts = g.user_department.split(' - ')
+    if (parts.length >= 1) return parts[0]
+  }
+  return CATEGORY_MAP[g.category] || g.category
+}
+
 export default function GrievanceList() {
   const [searchParams] = useSearchParams()
   const [filteredGrievances, setFilteredGrievances] = useState<Grievance[]>([])
@@ -25,10 +42,10 @@ export default function GrievanceList() {
   useEffect(() => {
     let filtered = [...grievances]
     
-    // Filter by category
+    // Filter by category (match parent category)
     const category = searchParams.get('category')
     if (category) {
-      filtered = filtered.filter(g => g.category === category)
+      filtered = filtered.filter(g => getParentCategory(g) === category)
     }
     
     // Filter by status
@@ -133,7 +150,7 @@ export default function GrievanceList() {
                   {grievance.description}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                  {grievance.category}
+                  {getParentCategory(grievance)}
                 </td>
                 <td className="px-6 py-4 whitespace-nowrap">
                   <span className={`px-2 py-1 text-xs font-medium rounded-full ${getStatusColor(grievance.status)}`}>

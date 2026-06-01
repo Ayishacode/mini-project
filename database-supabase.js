@@ -17,12 +17,12 @@ class SupabaseDatabase {
 
     async addGrievance(data) {
         try {
-            // Map SQLite fields to Supabase schema
             const grievanceData = {
                 category: this.mapDepartmentToCategory(data.department),
                 description: data.grievance,
                 is_anonymous: data.isAnonymous,
                 user_id: data.userId,
+                user_department: data.department, // store full "Category - Subcategory" here
                 status: 'Submitted',
                 image_url: null,
                 video_url: null
@@ -189,19 +189,17 @@ class SupabaseDatabase {
         return Promise.resolve();
     }
 
-    // Helper function to map old department names to new categories
+    // Map new subcategories to old allowed constraint values
     mapDepartmentToCategory(department) {
-        const mapping = {
-            'Academic': 'Academic',
-            'Hostel': 'Hostel',
-            'Faculty': 'Academic',
-            'Infrastructure': 'Infrastructure',
-            'IT Cell': 'IT Cell',
-            'Maintenance': 'Maintenance',
-            'Transport': 'Transport',
-            'Accounts': 'Accounts'
-        };
-        return mapping[department] || 'Other';
+        if (!department) return 'Other';
+        const d = department.toLowerCase();
+        if (d.includes('teaching') || d.includes('examination') || d.includes('internal assessment')) return 'Academic';
+        if (d.includes('fee') || d.includes('scholarship') || d.includes('certificate')) return 'Financial';
+        if (d.includes('bullying') || d.includes('threat') || d.includes('defamation') || d.includes('substance') || d.includes('harassment')) return 'Discipline / Harassment';
+        if (d.includes('library') || d.includes('canteen') || d.includes('laboratory') || d.includes('computer lab') || d.includes('counselling') || d.includes('hostel') || d.includes('washroom') || d.includes('sports')) return 'Infrastructure';
+        if (d.includes('cleanliness') || d.includes('building') || d.includes('electrical') || d.includes('plumbing')) return 'Infrastructure';
+        if (d.includes('office') || d.includes('administration')) return 'Administration';
+        return 'Other';
     }
 }
 
